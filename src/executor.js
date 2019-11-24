@@ -25,8 +25,8 @@ const PROPORTIONAL_PROPERTIES = {
     'size': true
 };
 
-function evaluate(ast, driver, options) {
-    const early_stop = options.early_stop || false;
+function evaluate(ast, driver, options={ early_stop: false } ) {
+    const early_stop = options.early_stop === undefined ? false : options.early_stop;
 
     const startshape = ast.startshape;
     console.log("Starting evaluation on:", startshape);
