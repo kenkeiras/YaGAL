@@ -242,10 +242,12 @@ function evaluate(ast, driver) {
     const startshape = ast.startshape;
     console.log("Starting evaluation on:", startshape);
 
-    const to_eval = [ { shape: startshape, properties: BASE_PROPERTIES } ];
+    let to_eval = [ { shape: startshape, properties: BASE_PROPERTIES } ];
+    let evaluated_count = 0;
 
     while (to_eval.length > 0) {
         const order = to_eval.pop();
+        evaluated_count++;
 
         const shape = order.shape;
         const properties = order.properties;
@@ -271,6 +273,8 @@ function evaluate(ast, driver) {
             to_eval.push({shape: entry.name, properties: entry_properties });
         }
     }
+
+    console.log(`${evaluated_count} rules evaluated`);
 }
 
 function update_properties(base, update) {
