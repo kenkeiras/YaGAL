@@ -263,6 +263,7 @@ function evaluate(ast, driver) {
         }
 
         const implementation = select_implementation(entries);
+        let new_entries = [];
         for (const entry of implementation) {
             const entry_properties = update_properties(properties, entry.parameters);
 
@@ -270,8 +271,14 @@ function evaluate(ast, driver) {
                 continue;
             }
 
-            to_eval.push({shape: entry.name, properties: entry_properties });
+            new_entries.push({shape: entry.name, properties: entry_properties });
         }
+
+        // The reason to use an intermediary list, which will get reversed is so
+        // elements are executed on the correct order. For this the next entry,
+        // the first one on `implementation` has to be the last one on the array.
+        new_entries.reverse();
+        to_eval = to_eval.concat(new_entries);
     }
 
     console.log(`${evaluated_count} rules evaluated`);
@@ -283,6 +290,7 @@ function update_properties(base, update) {
 
     for (let property of Object.keys(update)) {
         const value = update[property];
+
         if (PROPERTY_ALIASES[property] !== undefined) {
             property = PROPERTY_ALIASES[property];
         }
