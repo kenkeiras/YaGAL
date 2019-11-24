@@ -11,3 +11,4 @@ These features *might* get implemented at some point, if you're interested on ha
  - [ ] `CIRCLE`
  - [ ] `TRIANGLE`
  - [ ] User defined shapes (`PATH`s)
+ - [ ] Auto-adjust to canvas

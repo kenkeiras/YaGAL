@@ -2,15 +2,20 @@
   "name": "yagal",
   "version": "0.0.0",
   "description": "Yet-Another Generative Art Language",
-  "main": "index.js",
   "scripts": {
-    "build": "pegjs grammar.pegjs",
-    "test": "npm run build && node index.js test.ygl out.png"
+    "build-grammar": "pegjs src/grammar.pegjs",
+    "test": "npm run build-grammar && node index.js test.ygl out.png",
+    "build-cli": "npm run build-grammar && webpack --config webpack-cli.config.js",
+    "build-editor": "npm run build-grammar && webpack --config webpack-editor.config.js"
   },
   "author": "",
   "license": "WTFPL",
   "dependencies": {
     "canvas": "^2.6.0",
     "pegjs": "^0.10.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   }
 }
