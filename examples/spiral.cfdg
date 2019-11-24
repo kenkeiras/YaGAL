@@ -1,0 +1,27 @@
+startshape init
+
+// CF::Background = [b -0.9]
+
+shape init {
+    // Grayscale! ↓
+    // dot [ saturation 0 b 1 ]
+    // Colorful! ↓
+    dot [ saturation 1 b 1 ]
+}
+
+// Dot made
+shape dot
+rule 0.01 {
+     SQUARE [ ]
+     dot [ s 0.995 rotate 1 x 1 hue -1  ]
+}
+
+rule {
+     SQUARE [ ]
+     dot [ s 0.995 rotate -1 x 1 hue 1 ]
+}
+
+rule 0.90 {
+     SQUARE [ ]
+     dot [ s 1.005 rotate 1 x -1]
+}

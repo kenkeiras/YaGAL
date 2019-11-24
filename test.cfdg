@@ -1,27 +1,52 @@
-startshape init
+startshape FOREST
 
-// CF::Background = [b -0.9]
-
-shape init {
-    // Grayscale! ↓
-    // dot [ saturation 0 b 1 ]
-    // Colorful! ↓
-    dot [ saturation 1 b 1 ]
+shape FOREST
+{
+     SEED []
+     SEED [rotate 0 x -20 y 0 hue 0]
+     SEED [x -40 b 0 ]
 }
 
-// Dot made
-shape dot
-rule 0.01 {
-     SQUARE [ ]
-     dot [ s 0.995 rotate 1 x 1 hue -1  ]
+shape SEED
+rule {BRANCH []}
+rule {BRANCH [rotate 1]}
+rule {BRANCH [rotate -1]}
+rule {BRANCH [rotate 2]}
+rule {BRANCH [rotate -2]}
+rule {FORK []}
+
+shape BRANCH
+rule {LEFTBRANCH [flip 90]}
+rule {LEFTBRANCH []}
+
+shape LEFTBRANCH
+rule 4 {BLOCK [] LEFTBRANCH [y 0.885 rotate 0.1 size 0.99]}
+rule 4 {BLOCK [] LEFTBRANCH [y 0.885 rotate 0.2 size 0.99]}
+rule {BLOCK [] LEFTBRANCH [y 0.885 rotate 4 size 0.99]}
+rule {BLOCK [] FORK []}
+
+
+shape BLOCK
+{
+     SQUARE [rotate 1]
+     SQUARE [rotate -1]
+     SQUARE []
 }
 
+shape FORK
 rule {
-     SQUARE [ ]
-     dot [ s 0.995 rotate -1 x 1 hue 1 ]
+     BRANCH [ ]
+     BRANCH [size 0.5 rotate 40]
 }
-
-rule 0.90 {
-     SQUARE [ ]
-     dot [ s 1.005 rotate 1 x -1]
+rule {
+     BRANCH [ ]
+     BRANCH [size 0.5 rotate -40]
+}
+rule {
+     BRANCH [size 0.5 rotate -20]
+     BRANCH [ ]
+}
+rule {
+     BRANCH [size 0.7 y 0.1 rotate 20]
+     BRANCH [size 0.7 y 0.1 rotate -20]
 }
