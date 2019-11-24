@@ -240,30 +240,36 @@ function parse(content) {
 
 function evaluate(ast, driver) {
     const startshape = ast.startshape;
-    const properties = BASE_PROPERTIES;
     console.log("Starting evaluation on:", startshape);
-    evaluate_shape(ast, driver, startshape, properties);
-}
 
-function evaluate_shape(ast, driver, shape, properties) {
-    if (properties.size < MINIMUM_SIZE) {
-        return;
-    }
+    const to_eval = [ { shape: startshape, properties: BASE_PROPERTIES } ];
 
-    if (shape === 'SQUARE') {
-        driver.emit_square(properties);
-        return;
-    }
+    while (to_eval.length > 0) {
+        const order = to_eval.pop();
 
-    const entries = ast.shapes[shape];
-    if (entries === undefined) {
-        throw Error(`Unknown shape: ${shape}`);
-    }
-    console.log("-", shape);
+        const shape = order.shape;
+        const properties = order.properties;
 
-    const implementation = select_implementation(entries);
-    for (const entry of implementation) {
-        run_entry(ast, driver, entry, properties);
+        if (shape === 'SQUARE') {
+            driver.emit_square(properties);
+            continue;
+        }
+
+        const entries = ast.shapes[shape];
+        if (entries === undefined) {
+            throw Error(`Unknown shape: ${shape}`);
+        }
+
+        const implementation = select_implementation(entries);
+        for (const entry of implementation) {
+            const entry_properties = update_properties(properties, entry.parameters);
+
+            if (entry_properties.size < MINIMUM_SIZE) {
+                continue;
+            }
+
+            to_eval.push({shape: entry.name, properties: entry_properties });
+        }
     }
 }
 
@@ -289,10 +295,6 @@ function update_properties(base, update) {
     }
 
     return props;
-}
-
-function run_entry(ast, driver, entry, properties) {
-    evaluate_shape(ast, driver, entry.name, update_properties(properties, entry.parameters));
 }
 
 function random_choose_with_weight(entries, weight_prop) {
@@ -338,8 +340,6 @@ class CairoDriver {
     }
 
     emit_square(properties) {
-        console.log("Square:", properties);
-
         const width = properties.size;
         const height = properties.size;
         const left = (this.width / 2) + properties.x * UNIT_MULT;
