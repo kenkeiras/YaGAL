@@ -5,7 +5,8 @@ const fs = require("fs");
 
 const content = fs.readFileSync(process.argv[2]).toString();
 
-const MINIMUM_SIZE = 1; // Pixels
+const BASE_SIZE = 5;
+const MINIMUM_SIZE = 0.5; // Pixels
 const BASE_PROPERTIES = {
     flip: 0,
     rotate: 0,
@@ -13,11 +14,10 @@ const BASE_PROPERTIES = {
     saturation: 0,
     brightness: 0,
     alpha: 1,
-    size: 100,
+    size: BASE_SIZE,
     x: 0,
     y: 0,
 };
-const UNIT_MULT = 100;
 
 const PROPERTY_ALIASES = {
     r: 'rotate',
@@ -301,13 +301,13 @@ function update_properties(base, update) {
         // X & Y have to be evaluated with "rotate" and "flip" in mind
         if (property === 'x') {
             const rad_rotation = props.rotate / 360 * (2 * Math.PI) ;
-            props.x += Math.cos(rad_rotation) * value;
-            props.y += Math.sin(rad_rotation) * value;
+            props.x += Math.cos(rad_rotation) * value * props.size;
+            props.y += Math.sin(rad_rotation) * value * props.size;
         }
         else if (property === 'y') {
             const rad_rotation = (props.rotate / 360 * (2 * Math.PI)) % 360;
-            props.x += Math.sin(rad_rotation) * value;
-            props.y += Math.cos(rad_rotation) * value;
+            props.x += Math.sin(rad_rotation) * value * props.size;
+            props.y += Math.cos(rad_rotation) * value * props.size;
         }
 
         else if (PROPORTIONAL_PROPERTIES[property]) {
@@ -366,11 +366,14 @@ class CairoDriver {
     emit_square(properties) {
         const width = properties.size;
         const height = properties.size;
-        const left = (this.width / 2) + properties.x * UNIT_MULT;
-        const top = (this.height / 2) - properties.y * UNIT_MULT;
+        const left = (this.width / 2) + properties.x;
+        const top = (this.height / 2) - properties.y;
 
         this.ctx.beginPath();
-        this.ctx.fillStyle = `hsla(${properties.hue}, ${properties.saturation * 100}%, ${properties.brightness * 100}%, ${properties.alpha})`;
+        this.ctx.fillStyle = (`hsla(${properties.hue},`
+                              + `${properties.saturation * 100}%, `
+                              + `${properties.brightness * 100}%, `
+                              + `${properties.alpha})`);
         this.ctx.fillRect(left, top, width, height);
         this.ctx.stroke();
     }
