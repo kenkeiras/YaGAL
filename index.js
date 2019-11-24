@@ -1,7 +1,35 @@
+const { createCanvas, loadImage } = require('canvas');
+
 const grammar = require("./cfdg-grammar");
 const fs = require("fs");
 
 const content = fs.readFileSync(process.argv[2]).toString();
+
+const MINIMUM_SIZE = 1; // Pixels
+const BASE_PROPERTIES = {
+    flip: 0,
+    rotate: 0,
+    hue: 0,
+    saturation: 0,
+    brightness: 0,
+    alpha: 1,
+    size: 100,
+    x: 0,
+    y: 0,
+};
+const UNIT_MULT = 100;
+
+const PROPERTY_ALIASES = {
+    r: 'rotate',
+    sat: 'saturation',
+    b: 'brightness',
+    a: 'alpha',
+    s: 'size',
+};
+
+const PROPORTIONAL_PROPERTIES = {
+    'size': true
+};
 
 function remove_comments(input) {
     const result = (input
@@ -69,11 +97,11 @@ function parse_float(input) {
     }
 
     let after_dot;
-    if (input[2] === null) {
+    if (input[3] === null) {
         after_dot = '0';
     }
     else {
-        after_dot = gather_string(input[2]);
+        after_dot = gather_string(input[3]);
     }
 
     return parseFloat(`${sign}${before_dot}.${after_dot}`);
@@ -153,17 +181,17 @@ function add_shape(memory, name, shape) {
     }
 
     if (shape.simple) {
-        memory[name].push({weight: 1, shape: shape.content});
+        memory[name].push({weight: 1, content: shape.content});
     }
     else {
         for(const rule of shape.content) {
-            memory[name].push({weight: rule.weight, shape: rule.content});
+            memory[name].push({weight: rule.weight, content: rule.content});
         }
     }
 }
 
 function parse_to_ast(input) {
-    const result = { startshape: undefined, rules: {} };
+    const result = { startshape: undefined, shapes: {} };
 
     for (const entry of input) {
         if (entry.length === 0) {
@@ -187,7 +215,7 @@ function parse_to_ast(input) {
             // Handle shape
             const name = gather_string(entry[2]);
             const shape = parse_shape(entry);
-            add_shape(result, name, shape);
+            add_shape(result.shapes, name, shape);
         }
         else {
             throw Error(`Unexpected head: "${head}"`);
@@ -197,14 +225,143 @@ function parse_to_ast(input) {
     return result;
 }
 
-let tokenized;
-try {
-    tokenized = tokenize(content);
-} catch (err) {
-    console.error(`Line ${err.location.start.line}, col ${err.location.start.column}: ${err.message}`);
-    process.exit(1);
+function parse(content) {
+    let tokenized;
+    try {
+        tokenized = tokenize(content);
+    } catch (err) {
+        console.error(`Line ${err.location.start.line}, col ${err.location.start.column}: ${err.message}`);
+        process.exit(1);
+    }
+
+    const ast = parse_to_ast(tokenized);
+    return ast;
 }
 
-const ast = parse_to_ast(tokenized);
+function evaluate(ast, driver) {
+    const startshape = ast.startshape;
+    const properties = BASE_PROPERTIES;
+    console.log("Starting evaluation on:", startshape);
+    evaluate_shape(ast, driver, startshape, properties);
+}
 
-console.log("AST:", JSON.stringify(ast, null, 4));
+function evaluate_shape(ast, driver, shape, properties) {
+    if (properties.size < MINIMUM_SIZE) {
+        return;
+    }
+
+    if (shape === 'SQUARE') {
+        driver.emit_square(properties);
+        return;
+    }
+
+    const entries = ast.shapes[shape];
+    if (entries === undefined) {
+        throw Error(`Unknown shape: ${shape}`);
+    }
+    console.log("-", shape);
+
+    const implementation = select_implementation(entries);
+    for (const entry of implementation) {
+        run_entry(ast, driver, entry, properties);
+    }
+}
+
+function update_properties(base, update) {
+    const props = {};
+    Object.assign(props, base);
+
+    for (let property of Object.keys(update)) {
+        const value = update[property];
+        if (PROPERTY_ALIASES[property] !== undefined) {
+            property = PROPERTY_ALIASES[property];
+        }
+        if (props[property] === undefined) {
+            throw Error(`Unknown property: ${property}`);
+        }
+
+        if (PROPORTIONAL_PROPERTIES[property]) {
+            props[property] *= value;
+        }
+        else {
+            props[property] += value;
+        }
+    }
+
+    return props;
+}
+
+function run_entry(ast, driver, entry, properties) {
+    evaluate_shape(ast, driver, entry.name, update_properties(properties, entry.parameters));
+}
+
+function random_choose_with_weight(entries, weight_prop) {
+    let total_weight = 0;
+    // Find out total weight
+    for (const entry of entries) {
+        total_weight += entry[weight_prop];
+    }
+
+    // Select a point on the weight line where this choice occurs
+    const selected_weight = Math.random() * total_weight;
+    let rem_weight = selected_weight;
+
+    // Find that point
+    for (const entry of entries) {
+        const entry_weight = entry[weight_prop];
+        if (entry_weight >= rem_weight) {
+            return entry;
+        }
+        else {
+            rem_weight -= entry_weight;
+        }
+    }
+
+    throw Error(`Error choosing at random. Remaining ${rem_weight} of ${selected_weight}, for a total of ${total_weight}`);
+}
+
+function select_implementation(entries) {
+    if (entries.length === 1) {
+        return entries[0].content;
+    }
+    else {
+        return random_choose_with_weight(entries, 'weight').content;
+    }
+}
+
+class CairoDriver {
+    constructor() {
+        this.width = 500;
+        this.height = 500;
+        this.canvas = createCanvas(this.width, this.height);
+        this.ctx = this.canvas.getContext('2d');
+    }
+
+    emit_square(properties) {
+        console.log("Square:", properties);
+
+        const width = properties.size;
+        const height = properties.size;
+        const left = (this.width / 2) + properties.x * UNIT_MULT;
+        const top = (this.height / 2) - properties.y * UNIT_MULT;
+
+        this.ctx.beginPath();
+        this.ctx.fillStyle = `hsla(${properties.hue}, ${properties.saturation * 100}%, ${properties.brightness * 100}%, ${properties.alpha})`;
+        this.ctx.fillRect(left, top, width, height);
+        this.ctx.stroke();
+    }
+
+    save(output) {
+        return new Promise((resolve, reject) => {
+            const out = fs.createWriteStream(output);
+            const stream = this.canvas.createPNGStream();
+            stream.pipe(out);
+            out.on('finish', () => { resolve(); });
+        });
+    }
+}
+
+const driver = new CairoDriver();
+evaluate(parse(content), driver);
+
+driver.save(process.argv[3]).then(() => process.exit());

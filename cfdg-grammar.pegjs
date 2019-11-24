@@ -49,6 +49,8 @@ parameter
  / "flip"       whitespace float // Flip
  / "s"          whitespace float // Size
  / "size"       whitespace float
+ / "a"          whitespace float // Alpha
+ / "alpha"      whitespace float
 
 float
  = sign? [0-9]* "."? [0-9]*
