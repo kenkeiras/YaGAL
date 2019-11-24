@@ -4,8 +4,7 @@
   "description": "Yet-Another Generative Art Language",
   "scripts": {
     "build-grammar": "pegjs src/grammar.pegjs",
-    "test": "npm run build-grammar && node index.js test.ygl out.png",
-    "build-cli": "npm run build-grammar && webpack --config webpack-cli.config.js",
+    "test": "npm run build-grammar && node src/cli.js test.ygl out.png",
     "build-editor": "npm run build-grammar && webpack --config webpack-editor.config.js"
   },
   "author": "",
