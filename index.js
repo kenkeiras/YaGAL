@@ -1,6 +1,6 @@
 const { createCanvas, loadImage } = require('canvas');
 
-const grammar = require("./cfdg-grammar");
+const grammar = require("./grammar");
 const fs = require("fs");
 
 const content = fs.readFileSync(process.argv[2]).toString();
@@ -363,8 +363,8 @@ function select_implementation(entries) {
 
 class CairoDriver {
     constructor() {
-        this.width = 500;
-        this.height = 500;
+        this.width = 1024;
+        this.height = 1024;
         this.canvas = createCanvas(this.width, this.height);
         this.ctx = this.canvas.getContext('2d');
     }

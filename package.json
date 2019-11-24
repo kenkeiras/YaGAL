@@ -1,11 +1,11 @@
 {
-  "name": "web-cfdg",
+  "name": "yagal",
   "version": "0.0.0",
-  "description": "",
+  "description": "Yet-Another Generative Art Language",
   "main": "index.js",
   "scripts": {
-    "build": "pegjs cfdg-grammar.pegjs",
-    "test": "npm run build && node index.js test.cfdg"
+    "build": "pegjs grammar.pegjs",
+    "test": "npm run build && node index.js test.ygl out.png"
   },
   "author": "",
   "license": "WTFPL",

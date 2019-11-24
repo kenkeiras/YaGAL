@@ -1,0 +1,12 @@
+startshape init
+
+shape init {
+    dot [ ]
+}
+
+// Dot made
+shape dot
+rule {
+     SQUARE [ ]
+     dot [ s 0.995 rotate 1 x 1 ]
+}
