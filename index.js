@@ -108,7 +108,7 @@ function parse_float(input) {
 }
 
 function parse_parameter(input) {
-    return { key: input[0], value: parse_float(input[2]) };
+    return { key: input[0].toLowerCase(), value: parse_float(input[2]) };
 }
 
 function parse_parameters(input) {
