@@ -5,10 +5,11 @@ const fs = require("fs");
 
 const content = fs.readFileSync(process.argv[2]).toString();
 
+const PROGRESS_UPDATE_INTERVAL = 10000;
 const BASE_SIZE = 5;
 const MINIMUM_SIZE = 0.5; // Pixels
 const BASE_PROPERTIES = {
-    flip: 0,
+    flip: 0,  // Not applied
     rotate: 0,
     hue: 0,
     saturation: 0,
@@ -249,6 +250,11 @@ function evaluate(ast, driver) {
         const order = to_eval.pop();
         evaluated_count++;
 
+        // Show progress
+        if (evaluated_count % PROGRESS_UPDATE_INTERVAL === 0) {
+            console.log(`${evaluated_count} rules evaluted`);
+        }
+
         const shape = order.shape;
         const properties = order.properties;
 
@@ -281,7 +287,7 @@ function evaluate(ast, driver) {
         to_eval = to_eval.concat(new_entries);
     }
 
-    console.log(`${evaluated_count} rules evaluated`);
+    console.log(`Completed: ${evaluated_count} rules evaluated`);
 }
 
 function update_properties(base, update) {
