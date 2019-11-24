@@ -298,7 +298,19 @@ function update_properties(base, update) {
             throw Error(`Unknown property: ${property}`);
         }
 
-        if (PROPORTIONAL_PROPERTIES[property]) {
+        // X & Y have to be evaluated with "rotate" and "flip" in mind
+        if (property === 'x') {
+            const rad_rotation = props.rotate / 360 * (2 * Math.PI) ;
+            props.x += Math.cos(rad_rotation) * value;
+            props.y += Math.sin(rad_rotation) * value;
+        }
+        else if (property === 'y') {
+            const rad_rotation = (props.rotate / 360 * (2 * Math.PI)) % 360;
+            props.x += Math.sin(rad_rotation) * value;
+            props.y += Math.cos(rad_rotation) * value;
+        }
+
+        else if (PROPORTIONAL_PROPERTIES[property]) {
             props[property] *= value;
         }
         else {
