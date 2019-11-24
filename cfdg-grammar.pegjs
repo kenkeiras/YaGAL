@@ -14,36 +14,44 @@ shape
  / "shape" whitespace identifier whitespace rules
 
 rules
- = (rule whitespace)+
+ = (rule whitespace)* rule?
 
 rule
  = "rule" whitespace float? maybe_whitespace "{" maybe_whitespace commands maybe_whitespace "}"
 
 commands
- = command whitespace commands
+ = (command whitespace)* command?
+
+command_block
+ = "{" maybe_whitespace commands maybe_whitespace "}"
  / command
 
 command
  = identifier maybe_whitespace "[" maybe_whitespace parameters maybe_whitespace "]"
+ / loop
+
+loop
+ = "loop" whitespace int maybe_whitespace "[" maybe_whitespace parameters maybe_whitespace "]" maybe_whitespace command_block
 
 parameters
  = (parameter whitespace)* parameter?
 
 parameter
- = "s"          whitespace float // Saturation
+ = "sat"        whitespace float // Saturation
  / "saturation" whitespace float
  / "b"          whitespace float // Brightness
  / "brightness" whitespace float
- / "rot"        whitespace float // Rotation
+ / "r"          whitespace float // Rotation
  / "rotate"     whitespace float
  / "x"          whitespace float // Coordinates
  / "y"          whitespace float 
  / "hue"        whitespace float // Hue
+ / "flip"       whitespace float // Flip
+ / "s"          whitespace float // Size
+ / "size"       whitespace float
 
 float
- = sign? [0-9]+ "." [0-9]*
- / sign? [0-9]* "." [0-9]+
- / sign? int
+ = sign? [0-9]* "."? [0-9]*
 
 sign
  = "+"
